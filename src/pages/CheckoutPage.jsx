@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { CheckCircle, Package, ChevronRight } from 'lucide-react';
+import { Link, Navigate, useNavigate } from 'react-router-dom';
+import { CheckCircle, Package, ChevronRight, Loader2 } from 'lucide-react';
 import { useCartStore } from '../store/cartStore';
+import { useAuthStore } from '../store/authStore';
+import { useUIStore } from '../store/uiStore';
 import { formatCurrency } from '../utils/helpers';
+import api from '../utils/api';
 
 const steps = ['Pengiriman', 'Pembayaran', 'Konfirmasi'];
 
@@ -21,20 +24,72 @@ const couriers = [
 ];
 
 export default function CheckoutPage() {
+  const { token } = useAuthStore();
+  const navigate = useNavigate();
+  const showToast = useUIStore(s => s.showToast);
+
   const [step, setStep] = useState(0);
   const [courier, setCourier] = useState('jne');
   const [payment, setPayment] = useState('transfer');
   const [done, setDone] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [orderNum, setOrderNum] = useState('');
   const { items, clearCart } = useCartStore();
   const [form, setForm] = useState({ name: '', phone: '', address: '', city: '', zip: '' });
+
+  // Redirect to login if not authenticated
+  if (!token) {
+    return <Navigate to="/login?redirect=/checkout" replace />;
+  }
 
   const subtotal = items.reduce((s, i) => s + i.price * i.qty, 0);
   const selectedCourier = couriers.find(c => c.id === courier);
   const total = subtotal + (selectedCourier?.price || 0);
 
-  const handleOrder = () => {
-    setDone(true);
-    clearCart();
+  const handleOrder = async () => {
+    if (items.length === 0) {
+      showToast('Keranjang belanja kosong', 'error');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // 1. Sync local cart items to the database cart
+      await api.delete('/cart');
+      for (const item of items) {
+        await api.post('/cart/items', {
+          productId: Number(item.id),
+          size: Number(item.size),
+          color: item.color,
+          qty: Number(item.qty),
+        });
+      }
+
+      // 2. Create the order in the backend database
+      const res = await api.post('/orders', {
+        address: {
+          name: form.name,
+          phone: form.phone,
+          address: form.address,
+          city: form.city,
+          zipCode: form.zip,
+        },
+        courier: courier,
+        paymentMethod: payment,
+      });
+
+      const order = res.data.data;
+      setOrderNum(order.orderNumber);
+      setDone(true);
+      clearCart();
+      showToast('Pesanan berhasil dibuat! 🎉', 'success');
+    } catch (err) {
+      console.error(err);
+      const msg = err.response?.data?.error?.message || 'Gagal memproses pesanan';
+      showToast(msg, 'error');
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (done) return (
@@ -44,8 +99,8 @@ export default function CheckoutPage() {
           <CheckCircle className="w-12 h-12 text-emerald-500" />
         </div>
         <h2 className="font-display text-3xl font-bold text-gray-900 dark:text-white mb-3">Pesanan Berhasil! 🎉</h2>
-        <p className="text-gray-500 dark:text-gray-400 mb-2">Order #SL-{Math.floor(Math.random() * 90000) + 10000}</p>
-        <p className="text-gray-600 dark:text-gray-400 mb-8">Pesananmu sedang diproses. Kamu akan menerima konfirmasi via email.</p>
+        <p className="text-gray-500 dark:text-gray-400 mb-2 font-mono font-semibold">Order #{orderNum}</p>
+        <p className="text-gray-600 dark:text-gray-400 mb-8">Pesananmu sedang diproses. Kamu bisa memantau status pesananmu di halaman riwayat transaksi.</p>
         <div className="flex gap-3 justify-center">
           <Link to="/orders" className="btn-outline flex items-center gap-2">
             <Package className="w-4 h-4" /> Lihat Pesanan
@@ -110,7 +165,18 @@ export default function CheckoutPage() {
                   </button>
                 ))}
               </div>
-              <button onClick={() => setStep(1)} className="w-full btn-primary mt-4">Lanjut ke Pembayaran</button>
+              <button
+                onClick={() => {
+                  if (!form.name || !form.phone || !form.address || !form.city || !form.zip) {
+                    showToast('Harap lengkapi semua data pengiriman', 'error');
+                    return;
+                  }
+                  setStep(1);
+                }}
+                className="w-full btn-primary mt-4"
+              >
+                Lanjut ke Pembayaran
+              </button>
             </div>
           )}
 
@@ -142,7 +208,7 @@ export default function CheckoutPage() {
           {step === 2 && (
             <div className="card p-6">
               <h2 className="font-bold text-gray-900 dark:text-white text-lg mb-4">Konfirmasi Pesanan</h2>
-              <div className="space-y-3 mb-6">
+              <div className="space-y-3 mb-6 animate-fade-in">
                 {items.map(item => (
                   <div key={item.key} className="flex gap-3 items-center">
                     <img src={item.image} alt={item.name} className="w-14 h-14 object-cover rounded-xl" />
@@ -155,8 +221,14 @@ export default function CheckoutPage() {
                 ))}
               </div>
               <div className="flex gap-3">
-                <button onClick={() => setStep(1)} className="btn-secondary flex-1">Kembali</button>
-                <button onClick={handleOrder} className="btn-primary flex-1">Bayar Sekarang</button>
+                <button onClick={() => setStep(1)} disabled={loading} className="btn-secondary flex-1">Kembali</button>
+                <button
+                  onClick={handleOrder}
+                  disabled={loading}
+                  className="btn-primary flex-1 flex items-center justify-center gap-2 py-3"
+                >
+                  {loading ? <><Loader2 className="w-5 h-5 animate-spin" /> Memproses...</> : 'Bayar Sekarang'}
+                </button>
               </div>
             </div>
           )}
@@ -175,7 +247,7 @@ export default function CheckoutPage() {
             </div>
             <div className="border-t border-gray-100 dark:border-gray-800 pt-2 flex justify-between font-bold text-gray-900 dark:text-white">
               <span>Total</span>
-              <span className="text-brand">{formatCurrency(total)}</span>
+              <span className="text-brand font-extrabold text-lg">{formatCurrency(total)}</span>
             </div>
           </div>
         </div>
@@ -183,3 +255,4 @@ export default function CheckoutPage() {
     </div>
   );
 }
+
