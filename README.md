@@ -1,26 +1,26 @@
-# 👟 StepLuxe — Modern E-Commerce Shoe Store
+# StepLuxe — Modern E-Commerce Shoe Store
 
 StepLuxe adalah platform *e-commerce* toko sepatu modern yang dibangun menggunakan stack teknologi terkini. Aplikasi ini dilengkapi dengan katalog produk interaktif, fitur pencarian & penyaringan lengkap, sistem keranjang belanja & wishlist, autentikasi pengguna (JWT), proses checkout & manajemen pesanan, serta **Admin Dashboard**.
 
 ---
 
-## 🚀 Fitur Utama
+## Fitur Utama
 
-- 🛍️ **Katalog & Filter Produk**: Pencarian langsung, filter berdasarkan merek (brand), kategori, rentang harga, ukuran, warna, serta pengurutan (sorting).
-- 🔐 **Autentikasi & Otorisasi**: Sistem Sign Up / Login menggunakan JWT (JSON Web Token) dengan peran pengguna (*Customer* & *Admin*).
-- 🛒 **Keranjang & Wishlist**: Manajemen keranjang belanja interaktif, pengaturan jumlah barang, serta simpan ke daftar keinginan (*wishlist*).
-- 📦 **Checkout & Transaksi**:
+-  **Katalog & Filter Produk**: Pencarian langsung, filter berdasarkan merek (brand), kategori, rentang harga, ukuran, warna, serta pengurutan (sorting).
+-  **Autentikasi & Otorisasi**: Sistem Sign Up / Login menggunakan JWT (JSON Web Token) dengan peran pengguna (*Customer* & *Admin*).
+-  **Keranjang & Wishlist**: Manajemen keranjang belanja interaktif, pengaturan jumlah barang, serta simpan ke daftar keinginan (*wishlist*).
+-  **Checkout & Transaksi**:
   - Pemilihan alamat pengiriman.
   - Opsi kurir ekspedisi & perkiraan ongkos kirim.
   - Penerapan kode promo / kupon diskon.
   - Pilihan metode pembayaran.
   - Pelacakan status pesanan (*Pending*, *Paid*, *Processing*, *Shipped*, *Delivered*, *Cancelled*).
-- ⭐ **Ulasan & Rating**: Penilaian bintang dan ulasan dari pembeli pada setiap produk.
-- ⚡ **Admin Dashboard**: Panel manajemen produk, kategori, merek, pesanan pelanggan, dan manajemen stok.
+-  **Ulasan & Rating**: Penilaian bintang dan ulasan dari pembeli pada setiap produk.
+-  **Admin Dashboard**: Panel manajemen produk, kategori, merek, pesanan pelanggan, dan manajemen stok.
 
 ---
 
-## 🛠️ Teknologi yang Digunakan
+## Teknologi yang Digunakan
 
 ### **Frontend**
 - **Framework**: React 18 + Vite
@@ -50,7 +50,7 @@ StepLuxe adalah platform *e-commerce* toko sepatu modern yang dibangun menggunak
 
 ---
 
-### ⚡ Mode 1: Memakai SQLite (Sangat Cepat & Tanpa Docker)
+### Mode 1: Memakai SQLite (Sangat Cepat & Tanpa Docker)
 
 1. **Clone repository & masuk ke direktori proyek**:
    ```bash
@@ -101,7 +101,7 @@ StepLuxe adalah platform *e-commerce* toko sepatu modern yang dibangun menggunak
 
 ---
 
-### 🐳 Mode 2: Memakai PostgreSQL & Docker
+### Mode 2: Memakai PostgreSQL & Docker
 
 Jika Anda ingin menjalankan database di PostgreSQL melalui Docker:
 
@@ -129,7 +129,7 @@ Jika Anda ingin menjalankan database di PostgreSQL melalui Docker:
 
 ---
 
-## 🔑 Akun Demo (Pre-seeded Credentials)
+## Akun Demo (Pre-seeded Credentials)
 
 Setelah menjalankan perintah `seed.js`, Anda dapat menggunakan akun bawaan berikut:
 
@@ -140,7 +140,7 @@ Setelah menjalankan perintah `seed.js`, Anda dapat menggunakan akun bawaan berik
 
 ---
 
-## 🎟️ Kode Promo Demo
+## Kode Promo Demo
 
 Gunakan kode promo berikut saat checkout untuk mendapatkan potongan harga:
 - `WELCOME10` — Diskon 10%
@@ -148,7 +148,7 @@ Gunakan kode promo berikut saat checkout untuk mendapatkan potongan harga:
 
 ---
 
-## 📁 Struktur Folder Utama
+## Struktur Folder Utama
 
 ```
 shoe-store/
@@ -176,4 +176,4 @@ shoe-store/
 
 ## 📄 Lisensi
 
-Proyek ini dibuat untuk keperluan demonstrasi dan pengembangan toko online modern. Silakan digunakan dan dikembangkan lebih lanjut.
+Proyek ini dibuat untuk keperluan demonstrasi dan pengembangan toko online modern.
