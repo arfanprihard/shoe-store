@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -16,7 +16,7 @@ model User {
   lastName  String   @map("last_name")
   phone     String?
   avatar    String?
-  role      String   @default("CUSTOMER")
+  role      Role     @default(CUSTOMER)
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
@@ -27,6 +27,11 @@ model User {
   wishlist  Wishlist[]
 
   @@map("users")
+}
+
+enum Role {
+  CUSTOMER
+  ADMIN
 }
 
 model Address {
@@ -195,22 +200,22 @@ model Wishlist {
 
 // ─── ORDER ──────────────────────────────────────
 model Order {
-  id            Int      @id @default(autoincrement())
-  orderNumber   String   @unique @map("order_number")
-  userId        Int      @map("user_id")
-  addressId     Int      @map("address_id")
-  status        String   @default("PENDING")
+  id            Int         @id @default(autoincrement())
+  orderNumber   String      @unique @map("order_number")
+  userId        Int         @map("user_id")
+  addressId     Int         @map("address_id")
+  status        OrderStatus @default(PENDING)
   subtotal      Int
-  shippingCost  Int      @map("shipping_cost")
-  discount      Int      @default(0)
+  shippingCost  Int         @map("shipping_cost")
+  discount      Int         @default(0)
   total         Int
   courier       String
-  courierEta    String?  @map("courier_eta")
-  paymentMethod String   @map("payment_method")
-  promoCode     String?  @map("promo_code")
+  courierEta    String?     @map("courier_eta")
+  paymentMethod String      @map("payment_method")
+  promoCode     String?     @map("promo_code")
   notes         String?
-  createdAt     DateTime @default(now()) @map("created_at")
-  updatedAt     DateTime @updatedAt @map("updated_at")
+  createdAt     DateTime    @default(now()) @map("created_at")
+  updatedAt     DateTime    @updatedAt @map("updated_at")
 
   user    User        @relation(fields: [userId], references: [id])
   address Address     @relation(fields: [addressId], references: [id])
@@ -219,6 +224,15 @@ model Order {
   @@index([userId])
   @@index([status])
   @@map("orders")
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
 }
 
 model OrderItem {
@@ -240,17 +254,22 @@ model OrderItem {
 
 // ─── PROMO ──────────────────────────────────────
 model PromoCode {
-  id          Int      @id @default(autoincrement())
-  code        String   @unique
-  type        String
+  id          Int       @id @default(autoincrement())
+  code        String    @unique
+  type        PromoType
   value       Int
-  minPurchase Int?     @map("min_purchase")
-  maxDiscount Int?     @map("max_discount")
-  usageLimit  Int?     @map("usage_limit")
-  usageCount  Int      @default(0) @map("usage_count")
-  startDate   DateTime @map("start_date")
-  endDate     DateTime @map("end_date")
-  isActive    Boolean  @default(true) @map("is_active")
+  minPurchase Int?      @map("min_purchase")
+  maxDiscount Int?      @map("max_discount")
+  usageLimit  Int?      @map("usage_limit")
+  usageCount  Int       @default(0) @map("usage_count")
+  startDate   DateTime  @map("start_date")
+  endDate     DateTime  @map("end_date")
+  isActive    Boolean   @default(true) @map("is_active")
 
   @@map("promo_codes")
+}
+
+enum PromoType {
+  PERCENTAGE
+  FIXED
 }

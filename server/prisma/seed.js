@@ -1,4 +1,4 @@
-﻿/**
+/**
  * seed.js â€” Master seeder yang mencerminkan kondisi database production saat ini.
  *
  * Data yang di-seed:
@@ -726,14 +726,22 @@ const ordersSeed = [
 async function main() {
   console.log("Seeding database...");
 
-  await prisma.$executeRawUnsafe(`
-    TRUNCATE TABLE
-      "order_items", "orders", "reviews", "cart_items", "wishlists",
-      "product_tags", "product_sizes", "product_colors", "product_images",
-      "products", "addresses", "users", "brands", "categories", "promo_codes"
-    RESTART IDENTITY CASCADE;
-  `);
-  console.log("All tables truncated");
+  await prisma.orderItem.deleteMany();
+  await prisma.order.deleteMany();
+  await prisma.review.deleteMany();
+  await prisma.cartItem.deleteMany();
+  await prisma.wishlist.deleteMany();
+  await prisma.productTag.deleteMany();
+  await prisma.productSize.deleteMany();
+  await prisma.productColor.deleteMany();
+  await prisma.productImage.deleteMany();
+  await prisma.product.deleteMany();
+  await prisma.address.deleteMany();
+  await prisma.user.deleteMany();
+  await prisma.brand.deleteMany();
+  await prisma.category.deleteMany();
+  await prisma.promoCode.deleteMany();
+  console.log("All tables cleaned");
 
   const brandMap = {};
   for (const b of brands) {
