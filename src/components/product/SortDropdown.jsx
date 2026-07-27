@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { ChevronDown } from 'lucide-react';
-import { useFilterStore } from '../../store/filterStore';
 
 const sortOptions = [
   { value: 'popular', label: 'Terpopuler' },
@@ -11,9 +11,21 @@ const sortOptions = [
 ];
 
 export default function SortDropdown() {
-  const { sortBy, setSortBy } = useFilterStore();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [open, setOpen] = useState(false);
+  const sortBy = searchParams.get('sort') || 'popular';
   const current = sortOptions.find(o => o.value === sortBy);
+
+  const handleSelect = (val) => {
+    const params = new URLSearchParams(searchParams);
+    if (val === 'popular') {
+      params.delete('sort');
+    } else {
+      params.set('sort', val);
+    }
+    setSearchParams(params, { replace: true });
+    setOpen(false);
+  };
 
   return (
     <div className="relative">
@@ -29,7 +41,7 @@ export default function SortDropdown() {
           {sortOptions.map(opt => (
             <button
               key={opt.value}
-              onClick={() => { setSortBy(opt.value); setOpen(false); }}
+              onClick={() => handleSelect(opt.value)}
               className={`w-full text-left px-4 py-3 text-sm transition-colors ${
                 sortBy === opt.value
                   ? 'text-brand bg-brand/5 font-medium'

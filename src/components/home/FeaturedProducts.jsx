@@ -1,11 +1,15 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
-import { products } from '../../data/products';
+import { useProductStore } from '../../store/productStore';
 import ProductCard from '../product/ProductCard';
 
 export default function FeaturedProducts() {
-  const featured = products.filter(p => p.isBestSeller).slice(0, 4);
+  const products = useProductStore(s => s.products);
+  const featured = products
+    .filter(p => p.isBestSeller || p.isNew)
+    .sort((a, b) => (b.reviewCount || 0) - (a.reviewCount || 0))
+    .slice(0, 4);
 
   return (
     <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">

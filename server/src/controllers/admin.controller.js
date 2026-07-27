@@ -60,18 +60,24 @@ export const getProducts = async (req, res, next) => {
       prisma.product.findMany({ where, include: productInclude, orderBy: { createdAt: 'desc' }, skip, take }),
       prisma.product.count({ where }),
     ]);
-    return success(res, products, { page: p, limit: l, total, totalPages: Math.ceil(total / l) });
+    const formatted = products.map(p => ({
+      ...p,
+      variants: p.variants ? (typeof p.variants === 'string' ? JSON.parse(p.variants) : p.variants) : {},
+    }));
+    return success(res, formatted, { page: p, limit: l, total, totalPages: Math.ceil(total / l) });
   } catch (e) { next(e); }
 };
 
 export const createProduct = async (req, res, next) => {
   try {
-    const { name, slug, description, price, originalPrice, stock, brandId, categoryId, images, colors, sizes, tags, isNew, isBestSeller } = req.body;
+    const { name, slug, description, price, originalPrice, stock, brandId, categoryId, images, colors, sizes, tags, isNew, isBestSeller, variants } = req.body;
+    const variantsStr = variants ? (typeof variants === 'string' ? variants : JSON.stringify(variants)) : null;
     const product = await prisma.product.create({
       data: {
         name, slug, description, price: +price, originalPrice: originalPrice ? +originalPrice : null,
         stock: +stock, brandId: +brandId, categoryId: +categoryId,
         isNew: !!isNew, isBestSeller: !!isBestSeller,
+        variants: variantsStr,
         images: { create: (images || []).map((url, i) => ({ url, isPrimary: i === 0, sortOrder: i })) },
         colors: { create: (colors || []).map(c => ({ name: c.name, hexValue: c.hexValue })) },
         sizes: { create: (sizes || []).map(s => ({ size: +s.size, stock: +s.stock || 0 })) },
@@ -79,14 +85,16 @@ export const createProduct = async (req, res, next) => {
       },
       include: productInclude,
     });
-    return success(res, product, null, 201);
+    const parsedVariants = product.variants ? (typeof product.variants === 'string' ? JSON.parse(product.variants) : product.variants) : {};
+    return success(res, { ...product, variants: parsedVariants }, null, 201);
   } catch (e) { next(e); }
 };
 
 export const updateProduct = async (req, res, next) => {
   try {
     const id = +req.params.id;
-    const { name, slug, description, price, originalPrice, stock, brandId, categoryId, images, colors, sizes, tags, isNew, isBestSeller, isActive } = req.body;
+    const { name, slug, description, price, originalPrice, stock, brandId, categoryId, images, colors, sizes, tags, isNew, isBestSeller, isActive, variants } = req.body;
+    const variantsStr = variants ? (typeof variants === 'string' ? variants : JSON.stringify(variants)) : null;
 
     // Delete existing related data to replace with new
     await prisma.$transaction([
@@ -102,6 +110,7 @@ export const updateProduct = async (req, res, next) => {
         name, slug, description, price: +price, originalPrice: originalPrice ? +originalPrice : null,
         stock: +stock, brandId: +brandId, categoryId: +categoryId,
         isNew: !!isNew, isBestSeller: !!isBestSeller, isActive: isActive !== false,
+        variants: variantsStr,
         images: { create: (images || []).map((url, i) => ({ url, isPrimary: i === 0, sortOrder: i })) },
         colors: { create: (colors || []).map(c => ({ name: c.name, hexValue: c.hexValue })) },
         sizes: { create: (sizes || []).map(s => ({ size: +s.size, stock: +s.stock || 0 })) },
@@ -109,7 +118,8 @@ export const updateProduct = async (req, res, next) => {
       },
       include: productInclude,
     });
-    return success(res, product);
+    const parsedVariants = product.variants ? (typeof product.variants === 'string' ? JSON.parse(product.variants) : product.variants) : {};
+    return success(res, { ...product, variants: parsedVariants });
   } catch (e) { next(e); }
 };
 
@@ -123,7 +133,7 @@ export const deleteProduct = async (req, res, next) => {
 
 // ─── UPLOAD ─────────────────────────────────────
 export const uploadImages = (req, res) => {
-  const urls = req.files.map(f => `http://localhost:3001/uploads/products/${f.filename}`);
+  const urls = req.files.map(f => `/images/products/${f.filename}`);
   return success(res, urls, null, 201);
 };
 

@@ -4,6 +4,7 @@ import Navbar from './Navbar';
 import Footer from './Footer';
 import Toast from '../common/Toast';
 import ScrollToTop from '../common/ScrollToTop';
+import WhatsAppCS from '../common/WhatsAppCS';
 
 export default function Layout() {
   return (
@@ -14,6 +15,7 @@ export default function Layout() {
       </main>
       <Footer />
       <Toast />
+      <WhatsAppCS />
       <ScrollToTop />
     </div>
   );

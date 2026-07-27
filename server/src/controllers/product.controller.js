@@ -8,10 +8,30 @@ const productInclude = {
   colors: true,
   sizes: { orderBy: { size: 'asc' } },
   tags: true,
+  reviews: { include: { user: { select: { firstName: true, lastName: true } } }, orderBy: { createdAt: 'desc' } },
 };
 
 // Helper: format product to match frontend shape
 const formatProduct = (p) => {
+  let variantMap = {};
+  if (p.colors && p.sizes) {
+    p.colors.forEach(c => {
+      p.sizes.forEach(s => {
+        const key = `${c.hexValue}_${s.size}`;
+        variantMap[key] = s.stock !== undefined ? s.stock : 5;
+      });
+    });
+  }
+
+  let parsedVariants = null;
+  if (p.variants) {
+    try {
+      parsedVariants = typeof p.variants === 'string' ? JSON.parse(p.variants) : p.variants;
+    } catch (e) {}
+  }
+
+  const finalVariants = (parsedVariants && Object.keys(parsedVariants).length > 0) ? parsedVariants : variantMap;
+
   return {
     id: p.id, name: p.name, slug: p.slug, brand: p.brand?.name || '', category: p.category?.slug || '',
     price: p.price, originalPrice: p.originalPrice,
@@ -19,8 +39,9 @@ const formatProduct = (p) => {
     images: p.images?.map(i => i.url) || [],
     colors: p.colors?.map(c => c.hexValue) || [],
     sizes: p.sizes?.map(s => s.size) || [],
+    variants: finalVariants,
     tags: p.tags?.map(t => t.tag) || [],
-    rating: p.rating, reviewCount: p.reviewCount, stock: p.stock,
+    rating: p.rating || 5.0, reviewCount: p.reviewCount || 0, stock: p.stock,
     isNew: p.isNew, isBestSeller: p.isBestSeller,
     description: p.description,
     reviews: p.reviews?.map(r => ({
@@ -117,5 +138,46 @@ export const getById = async (req, res, next) => {
     });
     if (!product) return error(res, 'Produk tidak ditemukan', 404, 'NOT_FOUND');
     return success(res, formatProduct(product));
+  } catch (e) { next(e); }
+};
+
+// POST /api/products/:id/reviews
+export const addReview = async (req, res, next) => {
+  try {
+    const productId = +req.params.id;
+    const userId = req.user?.id || req.body.userId || 1;
+    const { rating, comment } = req.body;
+
+    if (!rating || rating < 1 || rating > 5) {
+      return error(res, 'Rating harus antara 1 sampai 5 bintang', 400);
+    }
+
+    const review = await prisma.review.upsert({
+      where: { productId_userId: { productId, userId } },
+      create: { productId, userId, rating: +rating, comment: comment || '' },
+      update: { rating: +rating, comment: comment || '' },
+      include: { user: { select: { firstName: true, lastName: true } } },
+    });
+
+    // Recalculate product overall rating and reviewCount
+    const allReviews = await prisma.review.findMany({ where: { productId } });
+    const avgRating = allReviews.reduce((sum, r) => sum + r.rating, 0) / allReviews.length;
+    await prisma.product.update({
+      where: { id: productId },
+      data: {
+        rating: Math.round(avgRating * 10) / 10,
+        reviewCount: allReviews.length,
+      },
+    });
+
+    return success(res, {
+      id: review.id,
+      user: `${review.user?.firstName || 'Pelanggan'} ${review.user?.lastName ? review.user.lastName.charAt(0) + '.' : ''}`,
+      avatar: `${(review.user?.firstName || 'P').charAt(0)}${(review.user?.lastName || 'U').charAt(0)}`,
+      rating: review.rating,
+      comment: review.comment,
+      date: review.createdAt.toISOString().split('T')[0],
+      helpful: review.helpful || 0,
+    }, 'Ulasan berhasil disimpan');
   } catch (e) { next(e); }
 };

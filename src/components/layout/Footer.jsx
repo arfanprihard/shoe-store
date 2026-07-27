@@ -49,11 +49,18 @@ export default function Footer() {
               </span>
             </Link>
             <p className="text-sm text-gray-400 mb-6 max-w-xs leading-relaxed">
-              Temukan koleksi sepatu premium terbaik untuk setiap gaya dan aktivitas Anda. Kualitas terjamin, pengiriman cepat, harga terjangkau.
+              Temukan koleksi sepatu original terbaik untuk setiap gaya dan aktivitas Anda. Kualitas terjamin, pengiriman cepat, harga terjangkau.
             </p>
             <div className="space-y-2 text-sm text-gray-400">
               <div className="flex items-center gap-2"><MapPin className="w-4 h-4 text-brand flex-shrink-0" /> Jl. Sudirman No.123, Jakarta Selatan</div>
-              <div className="flex items-center gap-2"><Phone className="w-4 h-4 text-brand flex-shrink-0" /> +62 812-3456-7890</div>
+              <a
+                href="https://wa.me/6285717578072?text=Halo%20CS%20StepLuxe,%20saya%20ingin%20melapor%20/%20bertanya%20mengenai%20layanan."
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center gap-2 text-emerald-400 hover:text-emerald-300 font-semibold transition-colors"
+              >
+                <MessageCircle className="w-4 h-4 text-emerald-400 flex-shrink-0" /> +62 857-1757-8072 (Lapor CS WA)
+              </a>
               <div className="flex items-center gap-2"><Mail className="w-4 h-4 text-brand flex-shrink-0" /> hello@stepluxe.id</div>
             </div>
             <div className="flex gap-3 mt-6">
@@ -84,9 +91,7 @@ export default function Footer() {
         {/* Bottom */}
         <div className="border-t border-gray-800 mt-12 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-gray-500">
           <p>© 2025 StepLuxe. All rights reserved.</p>
-          <p className="flex items-center gap-1.5">
-            Dibuat dengan <Heart className="w-4 h-4 text-brand fill-brand" /> di Indonesia
-          </p>
+          <p className="text-xs text-gray-500">Platform Toko Sepatu Original</p>
         </div>
       </div>
     </footer>

@@ -22,7 +22,7 @@
 
 @layer components {
   .btn-primary {
-    @apply bg-brand text-white px-6 py-3 rounded-xl font-semibold hover:bg-brand-dark active:scale-95 transition-all duration-200 shadow-brand hover:shadow-glow disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply bg-brand text-white px-6 py-3 rounded-xl font-semibold hover:bg-brand-dark active:scale-95 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed;
   }
   .btn-secondary {
     @apply bg-white dark:bg-dark-card text-gray-900 dark:text-gray-100 px-6 py-3 rounded-xl font-semibold border border-gray-200 dark:border-gray-700 hover:border-brand hover:text-brand dark:hover:border-brand dark:hover:text-brand transition-all duration-200 disabled:opacity-50;

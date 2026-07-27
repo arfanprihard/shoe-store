@@ -24,16 +24,71 @@ export const colors = [
 ];
 
 const shoeImages = {
-  nike1: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&q=80',
-  nike2: 'https://images.unsplash.com/photo-1600185365926-3a2ce3cdb9eb?w=600&q=80',
-  adidas1: 'https://images.unsplash.com/photo-1608231387042-66d1773070a5?w=600&q=80',
-  adidas2: 'https://images.unsplash.com/photo-1539185441755-769473a23570?w=600&q=80',
-  puma1: 'https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?w=600&q=80',
-  converse1: 'https://images.unsplash.com/photo-1463100099107-aa0980c362e6?w=600&q=80',
-  vans1: 'https://images.unsplash.com/photo-1491553895911-0055eca6402d?w=600&q=80',
-  nb1: 'https://images.unsplash.com/photo-1515955656352-a1fa3ffcd111?w=600&q=80',
-  boot1: 'https://images.unsplash.com/photo-1520639888713-7851133b1ed0?w=600&q=80',
-  formal1: 'https://images.unsplash.com/photo-1614252235316-8c857d38b5f4?w=600&q=80',
+  nike1: '/images/products/nike1.jpg',
+  nike2: '/images/products/nike2.jpg',
+  adidas1: '/images/products/adidas1.jpg',
+  adidas2: '/images/products/adidas2.jpg',
+  puma1: '/images/products/puma1.jpg',
+  converse1: '/images/products/converse1.jpg',
+  vans1: '/images/products/vans1.jpg',
+  nb1: '/images/products/nb1.jpg',
+  boot1: '/images/products/boot1.jpg',
+  formal1: '/images/products/formal1.jpg',
+};
+
+export const getVariantStock = (product, colorHexOrName, size) => {
+  if (!product || !colorHexOrName || !size) return 0;
+  if (!product.variants) return Math.max(0, product.stock !== undefined ? product.stock : 5);
+
+  const strColor = colorHexOrName.toString().toLowerCase().trim();
+  const strSize = size.toString();
+  const key = `${strColor}_${strSize}`;
+
+  if (product.variants[key] !== undefined) {
+    return Number(product.variants[key]);
+  }
+
+  // Fallback search if color name was passed instead of hex
+  if (product.colors && Array.isArray(product.colors)) {
+    const foundColorObj = product.colors.find(c => {
+      const hex = (c.hexValue || c).toString().toLowerCase();
+      const name = (c.name || c).toString().toLowerCase();
+      return hex === strColor || name === strColor;
+    });
+    if (foundColorObj) {
+      const cHex = (foundColorObj.hexValue || foundColorObj).toString().toLowerCase();
+      const altKey = `${cHex}_${strSize}`;
+      if (product.variants[altKey] !== undefined) return Number(product.variants[altKey]);
+    }
+  }
+
+  return Math.max(0, product.stock !== undefined ? product.stock : 5);
+};
+
+export const decrementProductStock = (productId, colorHex, size, qty) => {
+  const p = products.find(prod => prod.id === Number(productId));
+  if (!p) return;
+
+  // Decrement overall product stock
+  p.stock = Math.max(0, (p.stock || 0) - Number(qty));
+
+  // Initialize variants object if needed
+  if (!p.variants) {
+    p.variants = {};
+  }
+  const key = `${colorHex}_${size}`;
+  const currentVariantStock = getVariantStock(p, colorHex, size);
+  p.variants[key] = Math.max(0, currentVariantStock - Number(qty));
+};
+
+export const addProductToStore = (newProd) => {
+  if (!newProd || !newProd.id) return;
+  const existingIdx = products.findIndex(p => p.id === Number(newProd.id));
+  if (existingIdx >= 0) {
+    products[existingIdx] = { ...products[existingIdx], ...newProd };
+  } else {
+    products.unshift(newProd);
+  }
 };
 
 export const products = [
@@ -42,10 +97,18 @@ export const products = [
     price: 1850000, originalPrice: 2200000,
     image: shoeImages.nike1,
     images: [shoeImages.nike1, shoeImages.nike2, shoeImages.adidas1],
-    colors: ['#1a1a1a', '#ffffff', '#ef4444'],
+    colors: ['#ef4444', '#1a1a1a', '#ffffff'],
     sizes: [38,39,40,41,42,43,44],
     rating: 4.8, reviewCount: 245, stock: 15,
     isNew: false, isBestSeller: true,
+    variants: {
+      '#ef4444_40': 2, // Warna Merah, Ukuran 40 -> 2 Stok
+      '#ef4444_41': 1, // Warna Merah, Ukuran 41 -> 1 Stok
+      '#1a1a1a_42': 5, // Warna Hitam, Ukuran 42 -> 5 Stok
+      '#1a1a1a_43': 3, // Warna Hitam, Ukuran 43 -> 3 Stok
+      '#ffffff_39': 4, // Warna Putih, Ukuran 39 -> 4 Stok
+      '#ffffff_40': 2, // Warna Putih, Ukuran 40 -> 2 Stok
+    },
     description: 'Nike Air Max 270 menghadirkan kenyamanan maksimal dengan unit Air terbesar di tumit. Desain modern dan ringan untuk aktivitas harian maupun olahraga kasual.',
     tags: ['trending', 'comfortable', 'lifestyle'],
   },

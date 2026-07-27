@@ -12,6 +12,9 @@ router.get('/new-arrivals', productController.getNewArrivals);
 // GET /api/products/search?q=
 router.get('/search', productController.search);
 
+// POST /api/products/:id/reviews
+router.post('/:id/reviews', productController.addReview);
+
 // GET /api/products/:id
 router.get('/:id', productController.getById);
 

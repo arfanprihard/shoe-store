@@ -1,29 +1,28 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
-import { Heart, ShoppingCart, Star } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Heart, Eye, Star } from 'lucide-react';
 import { useWishlistStore } from '../../store/wishlistStore';
-import { useCartStore } from '../../store/cartStore';
 import { useUIStore } from '../../store/uiStore';
+import { useAuthStore } from '../../store/authStore';
 import { formatCurrency, calcDiscount } from '../../utils/helpers';
 import Badge from '../common/Badge';
 
 export default function ProductCard({ product }) {
+  const navigate = useNavigate();
   const { toggle, isWishlisted } = useWishlistStore();
-  const addItem = useCartStore(s => s.addItem);
   const showToast = useUIStore(s => s.showToast);
+  const user = useAuthStore(s => s.user);
   const wishlisted = isWishlisted(product.id);
   const discount = calcDiscount(product.price, product.originalPrice);
 
-  const handleAddCart = (e) => {
-    e.preventDefault();
-    const defaultSize = product.sizes[Math.floor(product.sizes.length / 2)];
-    const defaultColor = product.colors[0];
-    addItem(product, defaultSize, defaultColor, 1);
-    showToast(`${product.name} ditambahkan ke keranjang! 🛒`, 'success');
-  };
-
   const handleWishlist = (e) => {
     e.preventDefault();
+    e.stopPropagation();
+    if (!user) {
+      showToast('Silakan login terlebih dahulu untuk menyukai produk!', 'warning');
+      navigate('/login');
+      return;
+    }
     toggle(product);
     showToast(
       wishlisted ? 'Dihapus dari wishlist' : `${product.name} ditambahkan ke wishlist ❤️`,
@@ -32,7 +31,7 @@ export default function ProductCard({ product }) {
   };
 
   return (
-    <Link to={`/product/${product.id}`} className="group block">
+    <Link to={`/product/${product.slug || product.id}`} className="group block">
       <div className="card overflow-hidden">
         {/* Image */}
         <div className="relative overflow-hidden bg-gray-50 dark:bg-dark-200">
@@ -43,11 +42,10 @@ export default function ProductCard({ product }) {
             loading="lazy"
           />
           {/* Badges */}
-          <div className="absolute top-3 left-3 flex flex-col gap-1.5">
+          <div className="absolute top-3 left-3 flex flex-col gap-1.5 items-start">
             {product.isNew && <Badge variant="new">Baru</Badge>}
             {product.isBestSeller && <Badge variant="hot">🔥 Terlaris</Badge>}
             {discount > 0 && <Badge variant="sale">-{discount}%</Badge>}
-            {product.stock <= 5 && <Badge variant="sale">Stok Terbatas</Badge>}
           </div>
           {/* Wishlist */}
           <button
@@ -56,14 +54,11 @@ export default function ProductCard({ product }) {
           >
             <Heart className={`w-4 h-4 ${wishlisted ? 'fill-white' : ''}`} />
           </button>
-          {/* Quick add */}
+          {/* View Details CTA */}
           <div className="absolute bottom-0 left-0 right-0 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
-            <button
-              onClick={handleAddCart}
-              className="w-full bg-brand text-white py-3 text-sm font-semibold flex items-center justify-center gap-2 hover:bg-brand-dark transition-colors"
-            >
-              <ShoppingCart className="w-4 h-4" /> Tambah ke Keranjang
-            </button>
+            <div className="w-full bg-brand text-white py-3 text-sm font-semibold flex items-center justify-center gap-2 hover:bg-brand-dark transition-colors">
+              <Eye className="w-4 h-4" /> Lihat Detail Produk
+            </div>
           </div>
         </div>
 

@@ -1,17 +1,18 @@
 import React from 'react';
 
 const variants = {
-  new: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
-  sale: 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400',
-  hot: 'bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400',
-  default: 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400',
-  brand: 'bg-brand text-white',
-  outline: 'border border-brand text-brand',
+  new: 'bg-emerald-500 text-white font-bold shadow-md shadow-emerald-500/20 backdrop-blur-md',
+  sale: 'bg-gradient-to-r from-red-600 to-rose-600 text-white font-extrabold shadow-md shadow-red-500/25 tracking-wide',
+  hot: 'bg-gradient-to-r from-amber-500 to-orange-600 text-white font-bold shadow-md shadow-orange-500/25',
+  limited: 'bg-gray-900/90 text-amber-300 font-bold border border-amber-500/40 backdrop-blur-md shadow-md',
+  default: 'bg-black/60 text-white font-semibold backdrop-blur-md border border-white/20',
+  brand: 'bg-brand text-white font-bold shadow-md shadow-brand/30',
+  outline: 'border border-brand text-brand font-semibold',
 };
 
 export default function Badge({ variant = 'default', children, className = '' }) {
   return (
-    <span className={`badge ${variants[variant]} ${className}`}>
+    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] uppercase tracking-wider ${variants[variant] || variants.default} ${className}`}>
       {children}
     </span>
   );

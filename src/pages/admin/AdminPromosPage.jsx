@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { Plus, Trash2, Loader2 } from 'lucide-react';
 import api from '../../utils/api';
+import Pagination from '../../components/common/Pagination';
 import { useUIStore } from '../../store/uiStore';
 
 export default function AdminPromosPage() {
@@ -8,6 +9,8 @@ export default function AdminPromosPage() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 7;
   const showToast = useUIStore(s => s.showToast);
 
   const [form, setForm] = useState({
@@ -20,11 +23,18 @@ export default function AdminPromosPage() {
     try {
       const { data } = await api.get('/admin/promos');
       setPromos(data.data);
+      setCurrentPage(1);
     } catch { /* ignore */ }
     setLoading(false);
   };
 
   useEffect(() => { fetchPromos(); }, []);
+
+  const totalPages = Math.ceil(promos.length / itemsPerPage);
+  const paginatedPromos = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return promos.slice(start, start + itemsPerPage);
+  }, [promos, currentPage, itemsPerPage]);
 
   const update = (field) => (e) => setForm(p => ({ ...p, [field]: e.target.value }));
 
@@ -95,51 +105,62 @@ export default function AdminPromosPage() {
         {loading ? (
           <div className="flex items-center justify-center h-48"><Loader2 className="w-7 h-7 animate-spin text-brand" /></div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="bg-gray-50 dark:bg-gray-800/50 border-b border-gray-100 dark:border-gray-800">
-                  <th className="text-left py-3 px-4 text-gray-500 dark:text-gray-400 font-medium">Kode</th>
-                  <th className="text-left py-3 px-4 text-gray-500 dark:text-gray-400 font-medium">Tipe</th>
-                  <th className="text-left py-3 px-4 text-gray-500 dark:text-gray-400 font-medium">Nilai</th>
-                  <th className="text-left py-3 px-4 text-gray-500 dark:text-gray-400 font-medium">Min. Belanja</th>
-                  <th className="text-left py-3 px-4 text-gray-500 dark:text-gray-400 font-medium">Pemakaian</th>
-                  <th className="text-left py-3 px-4 text-gray-500 dark:text-gray-400 font-medium">Berlaku</th>
-                  <th className="text-left py-3 px-4 text-gray-500 dark:text-gray-400 font-medium">Status</th>
-                  <th className="text-right py-3 px-4 text-gray-500 dark:text-gray-400 font-medium">Aksi</th>
-                </tr>
-              </thead>
-              <tbody>
-                {promos.map(promo => {
-                  const now = new Date();
-                  const active = promo.isActive && new Date(promo.startDate) <= now && new Date(promo.endDate) >= now;
-                  return (
-                    <tr key={promo.id} className="border-b border-gray-50 dark:border-gray-800/50 hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors">
-                      <td className="py-3 px-4 font-mono font-bold text-brand">{promo.code}</td>
-                      <td className="py-3 px-4 text-gray-600 dark:text-gray-300">{promo.type === 'PERCENTAGE' ? 'Persentase' : 'Nominal'}</td>
-                      <td className="py-3 px-4 font-medium text-gray-900 dark:text-white">{promo.type === 'PERCENTAGE' ? `${promo.value}%` : `Rp ${promo.value.toLocaleString('id-ID')}`}</td>
-                      <td className="py-3 px-4 text-gray-500">{promo.minPurchase ? `Rp ${promo.minPurchase.toLocaleString('id-ID')}` : '-'}</td>
-                      <td className="py-3 px-4 text-gray-500">{promo.usageCount}/{promo.usageLimit || '∞'}</td>
-                      <td className="py-3 px-4 text-gray-500 text-xs">
-                        {new Date(promo.startDate).toLocaleDateString('id-ID')} — {new Date(promo.endDate).toLocaleDateString('id-ID')}
-                      </td>
-                      <td className="py-3 px-4">
-                        <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-semibold ${active ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'}`}>
-                          {active ? 'Aktif' : 'Nonaktif'}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4 text-right">
-                        <button onClick={() => handleDelete(promo.id, promo.code)}
-                          className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors">
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-            {promos.length === 0 && <p className="text-center text-gray-400 py-12">Belum ada kode promo</p>}
+          <div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-gray-50 dark:bg-gray-800/50 border-b border-gray-100 dark:border-gray-800">
+                    <th className="text-left py-3.5 px-4 text-gray-500 dark:text-gray-400 font-semibold">Kode</th>
+                    <th className="text-left py-3.5 px-4 text-gray-500 dark:text-gray-400 font-semibold">Tipe</th>
+                    <th className="text-left py-3.5 px-4 text-gray-500 dark:text-gray-400 font-semibold">Nilai</th>
+                    <th className="text-left py-3.5 px-4 text-gray-500 dark:text-gray-400 font-semibold">Min. Belanja</th>
+                    <th className="text-left py-3.5 px-4 text-gray-500 dark:text-gray-400 font-semibold">Pemakaian</th>
+                    <th className="text-left py-3.5 px-4 text-gray-500 dark:text-gray-400 font-semibold">Berlaku</th>
+                    <th className="text-left py-3.5 px-4 text-gray-500 dark:text-gray-400 font-semibold">Status</th>
+                    <th className="text-right py-3.5 px-4 text-gray-500 dark:text-gray-400 font-semibold">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {paginatedPromos.map(promo => {
+                    const now = new Date();
+                    const active = promo.isActive && new Date(promo.startDate) <= now && new Date(promo.endDate) >= now;
+                    return (
+                      <tr key={promo.id} className="border-b border-gray-50 dark:border-gray-800/50 hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors">
+                        <td className="py-3 px-4 font-mono font-bold text-brand">{promo.code}</td>
+                        <td className="py-3 px-4 text-gray-600 dark:text-gray-300 font-medium">{promo.type === 'PERCENTAGE' ? 'Persentase' : 'Nominal'}</td>
+                        <td className="py-3 px-4 font-semibold text-gray-900 dark:text-white">{promo.type === 'PERCENTAGE' ? `${promo.value}%` : `Rp ${promo.value.toLocaleString('id-ID')}`}</td>
+                        <td className="py-3 px-4 text-gray-500">{promo.minPurchase ? `Rp ${promo.minPurchase.toLocaleString('id-ID')}` : '-'}</td>
+                        <td className="py-3 px-4 text-gray-500">{promo.usageCount}/{promo.usageLimit || '∞'}</td>
+                        <td className="py-3 px-4 text-gray-500 text-xs">
+                          {new Date(promo.startDate).toLocaleDateString('id-ID')} — {new Date(promo.endDate).toLocaleDateString('id-ID')}
+                        </td>
+                        <td className="py-3 px-4">
+                          <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-bold ${active ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'}`}>
+                            {active ? 'Aktif' : 'Nonaktif'}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4 text-right">
+                          <button onClick={() => handleDelete(promo.id, promo.code)}
+                            className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors">
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+              {promos.length === 0 && <p className="text-center text-gray-400 py-12">Belum ada kode promo</p>}
+            </div>
+
+            {/* Pagination */}
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+              totalItems={promos.length}
+              itemsPerPage={itemsPerPage}
+            />
           </div>
         )}
       </div>

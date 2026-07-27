@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { Loader2 } from 'lucide-react';
 import api from '../../utils/api';
+import Pagination from '../../components/common/Pagination';
 import { useUIStore } from '../../store/uiStore';
 
 const statusOptions = ['PENDING', 'PAID', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED'];
@@ -21,18 +22,27 @@ export default function AdminOrdersPage() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 7;
   const showToast = useUIStore(s => s.showToast);
 
   const fetchOrders = async () => {
     setLoading(true);
     try {
-      const { data } = await api.get('/admin/orders', { params: { status: filter, limit: 50 } });
+      const { data } = await api.get('/admin/orders', { params: { status: filter, limit: 100 } });
       setOrders(data.data);
+      setCurrentPage(1);
     } catch { /* ignore */ }
     setLoading(false);
   };
 
   useEffect(() => { fetchOrders(); }, [filter]);
+
+  const totalPages = Math.ceil(orders.length / itemsPerPage);
+  const paginatedOrders = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return orders.slice(start, start + itemsPerPage);
+  }, [orders, currentPage, itemsPerPage]);
 
   const updateStatus = async (orderId, status) => {
     try {
@@ -49,12 +59,12 @@ export default function AdminOrdersPage() {
       {/* Filters */}
       <div className="flex flex-wrap gap-2">
         <button onClick={() => setFilter('all')}
-          className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${filter === 'all' ? 'bg-brand text-white shadow-brand' : 'bg-white dark:bg-dark-card text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 shadow-card'}`}>
+          className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${filter === 'all' ? 'bg-brand text-white' : 'bg-white dark:bg-dark-card text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'}`}>
           Semua
         </button>
         {statusOptions.map(s => (
           <button key={s} onClick={() => setFilter(s)}
-            className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${filter === s ? 'bg-brand text-white shadow-brand' : 'bg-white dark:bg-dark-card text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 shadow-card'}`}>
+            className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${filter === s ? 'bg-brand text-white' : 'bg-white dark:bg-dark-card text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'}`}>
             {statusLabels[s]}
           </button>
         ))}
@@ -65,47 +75,58 @@ export default function AdminOrdersPage() {
         {loading ? (
           <div className="flex items-center justify-center h-48"><Loader2 className="w-7 h-7 animate-spin text-brand" /></div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="bg-gray-50 dark:bg-gray-800/50 border-b border-gray-100 dark:border-gray-800">
-                  <th className="text-left py-3 px-4 text-gray-500 dark:text-gray-400 font-medium">Order</th>
-                  <th className="text-left py-3 px-4 text-gray-500 dark:text-gray-400 font-medium">Pelanggan</th>
-                  <th className="text-left py-3 px-4 text-gray-500 dark:text-gray-400 font-medium">Total</th>
-                  <th className="text-left py-3 px-4 text-gray-500 dark:text-gray-400 font-medium">Kurir</th>
-                  <th className="text-left py-3 px-4 text-gray-500 dark:text-gray-400 font-medium">Status</th>
-                  <th className="text-left py-3 px-4 text-gray-500 dark:text-gray-400 font-medium">Tanggal</th>
-                </tr>
-              </thead>
-              <tbody>
-                {orders.map(order => (
-                  <tr key={order.id} className="border-b border-gray-50 dark:border-gray-800/50 hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors">
-                    <td className="py-3 px-4 font-medium text-gray-900 dark:text-white">{order.orderNumber}</td>
-                    <td className="py-3 px-4">
-                      <p className="text-gray-700 dark:text-gray-200">{order.customer}</p>
-                      <p className="text-xs text-gray-400">{order.email}</p>
-                    </td>
-                    <td className="py-3 px-4 font-medium text-gray-900 dark:text-white">Rp {order.total.toLocaleString('id-ID')}</td>
-                    <td className="py-3 px-4 text-gray-600 dark:text-gray-300 uppercase text-xs font-semibold">{order.courier}</td>
-                    <td className="py-3 px-4">
-                      <select
-                        value={order.status}
-                        onChange={e => updateStatus(order.id, e.target.value)}
-                        className={`rounded-full text-xs font-semibold px-3 py-1.5 border-0 cursor-pointer focus:ring-2 focus:ring-brand ${statusColors[order.status]}`}
-                      >
-                        {statusOptions.map(s => (
-                          <option key={s} value={s}>{statusLabels[s]}</option>
-                        ))}
-                      </select>
-                    </td>
-                    <td className="py-3 px-4 text-gray-500 dark:text-gray-400">{new Date(order.date).toLocaleDateString('id-ID')}</td>
+          <div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-gray-50 dark:bg-gray-800/50 border-b border-gray-100 dark:border-gray-800">
+                    <th className="text-left py-3.5 px-4 text-gray-500 dark:text-gray-400 font-semibold">Order</th>
+                    <th className="text-left py-3.5 px-4 text-gray-500 dark:text-gray-400 font-semibold">Pelanggan</th>
+                    <th className="text-left py-3.5 px-4 text-gray-500 dark:text-gray-400 font-semibold">Total</th>
+                    <th className="text-left py-3.5 px-4 text-gray-500 dark:text-gray-400 font-semibold">Kurir</th>
+                    <th className="text-left py-3.5 px-4 text-gray-500 dark:text-gray-400 font-semibold">Status</th>
+                    <th className="text-left py-3.5 px-4 text-gray-500 dark:text-gray-400 font-semibold">Tanggal</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-            {orders.length === 0 && (
-              <p className="text-center text-gray-400 py-12">Belum ada pesanan</p>
-            )}
+                </thead>
+                <tbody>
+                  {paginatedOrders.map(order => (
+                    <tr key={order.id} className="border-b border-gray-50 dark:border-gray-800/50 hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors">
+                      <td className="py-3 px-4 font-semibold text-gray-900 dark:text-white">{order.orderNumber}</td>
+                      <td className="py-3 px-4">
+                        <p className="text-gray-700 dark:text-gray-200 font-medium">{order.customer}</p>
+                        <p className="text-xs text-gray-400">{order.email}</p>
+                      </td>
+                      <td className="py-3 px-4 font-semibold text-gray-900 dark:text-white">Rp {order.total.toLocaleString('id-ID')}</td>
+                      <td className="py-3 px-4 text-gray-600 dark:text-gray-300 uppercase text-xs font-semibold">{order.courier}</td>
+                      <td className="py-3 px-4">
+                        <select
+                          value={order.status}
+                          onChange={e => updateStatus(order.id, e.target.value)}
+                          className={`rounded-full text-xs font-semibold px-3 py-1.5 border-0 cursor-pointer focus:ring-2 focus:ring-brand ${statusColors[order.status]}`}
+                        >
+                          {statusOptions.map(s => (
+                            <option key={s} value={s}>{statusLabels[s]}</option>
+                          ))}
+                        </select>
+                      </td>
+                      <td className="py-3 px-4 text-gray-500 dark:text-gray-400">{new Date(order.date).toLocaleDateString('id-ID')}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {orders.length === 0 && (
+                <p className="text-center text-gray-400 py-12">Belum ada pesanan</p>
+              )}
+            </div>
+
+            {/* Pagination */}
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+              totalItems={orders.length}
+              itemsPerPage={itemsPerPage}
+            />
           </div>
         )}
       </div>

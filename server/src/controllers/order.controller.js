@@ -50,6 +50,7 @@ export const createOrder = async (req, res, next) => {
         data: {
           orderNumber: orderNum, userId: req.user.id, addressId: address.id,
           subtotal, shippingCost, discount, total, courier,
+          status: paymentMethod === 'cod' ? 'PENDING' : 'PAID',
           courierEta: COURIERS[courier]?.eta, paymentMethod, promoCode, notes,
           items: {
             create: cartItems.map(i => ({
@@ -90,9 +91,21 @@ export const getOrders = async (req, res, next) => {
       orderBy: { createdAt: 'desc' },
     });
     const formatted = orders.map(o => ({
-      id: o.orderNumber, date: o.createdAt.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }),
-      status: statusLabel(o.status), total: o.total,
-      items: o.items.map(i => ({ name: i.name, qty: i.qty, img: i.image })),
+      id: o.orderNumber,
+      orderNumber: o.orderNumber,
+      date: o.createdAt.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }),
+      status: statusLabel(o.status),
+      total: o.total,
+      courier: o.courier ? o.courier.toUpperCase() : 'JNE REG',
+      items: o.items.map(i => ({
+        id: i.productId,
+        productId: i.productId,
+        name: i.name,
+        qty: i.qty,
+        img: i.image,
+        size: i.size,
+        color: i.color,
+      })),
     }));
     return success(res, formatted);
   } catch (e) { next(e); }

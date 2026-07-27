@@ -1,11 +1,28 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useWishlistStore } from '../store/wishlistStore';
+import { useAuthStore } from '../store/authStore';
 import ProductCard from '../components/product/ProductCard';
-import { Heart, ShoppingBag } from 'lucide-react';
+import { Heart, ShoppingBag, LogIn } from 'lucide-react';
 
 export default function WishlistPage() {
   const { items } = useWishlistStore();
+  const user = useAuthStore(s => s.user);
+
+  if (!user) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
+        <div className="text-8xl mb-6">🔒</div>
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">Login Diperlukan</h2>
+        <p className="text-gray-500 dark:text-gray-400 mb-8 max-w-md mx-auto">
+          Silakan login ke akun Anda terlebih dahulu untuk melihat dan menyimpan produk ke dalam Wishlist favorit Anda.
+        </p>
+        <Link to="/login" className="btn-primary inline-flex items-center gap-2 px-8 py-3.5">
+          <LogIn className="w-5 h-5" /> Login Sekarang
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">

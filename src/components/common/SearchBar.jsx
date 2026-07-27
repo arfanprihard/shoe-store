@@ -63,7 +63,7 @@ export default function SearchBar({ className = '' }) {
           {suggestions.map(p => (
             <button
               key={p.id}
-              onClick={() => { navigate(`/product/${p.id}`); setOpen(false); setQuery(''); }}
+              onClick={() => { navigate(`/product/${p.slug || p.id}`); setOpen(false); setQuery(''); }}
               className="flex items-center gap-3 w-full px-4 py-3 hover:bg-gray-50 dark:hover:bg-dark-200 transition-colors text-left"
             >
               <img src={p.image} alt={p.name} className="w-10 h-10 object-cover rounded-lg" />

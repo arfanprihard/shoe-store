@@ -18,5 +18,6 @@ export const useFilterStore = create((set) => ({
   })),
   setSortBy: (v) => set({ sortBy: v }),
   setSearch: (v) => set({ searchQuery: v }),
+  setAllFilters: (newFilters) => set(s => ({ ...s, ...newFilters })),
   reset: () => set({ category: 'all', brands: [], priceRange: [0, 5000000], sizes: [], sortBy: 'popular', searchQuery: '' }),
 }));
