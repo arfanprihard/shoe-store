@@ -43,7 +43,7 @@ StepLuxe adalah platform *e-commerce* toko sepatu modern yang dibangun menggunak
 
 ---
 
-## 💻 Panduan Cara Menjalankan
+## Panduan Cara Menjalankan
 
 ### **Prasyarat**
 - **Node.js** v18+ dan **npm** terinstall di komputer Anda.
