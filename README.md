@@ -162,13 +162,16 @@ shoe-store/
 ├── server/                 # Backend Express API Source Code
 │   ├── prisma/             # Schema Prisma, Migrasi, & Seed Script
 │   ├── src/
-│   │   ├── controllers/    # Controller API (auth, product, order, cart, admin, dll)
-│   │   ├── middleware/     # Auth & Error handler middleware
-│   │   ├── routes/         # Express API routes
-│   │   └── index.js        # Main Express server entry point
+│   │   ├── Controllers/    # Controller API (auth, product, order, cart, admin, dll)
+│   │   ├── Middleware/     # Auth & Error handler middleware
+│   │   ├── Models/         # Data Models / Query layer (menggunakan default export)
+│   │   ├── Routes/         # Express API routes
+│   │   ├── Utils/          # Helper & utility (response.helper.js, jwt, password)
+│   │   ├── Validators/     # Skema validasi request schema (Zod)
+│   │   └── index.js        # Entry point utama Express server
 │   └── .env                # File konfigurasi backend
 ├── docker-compose.yml      # Konfigurasi PostgreSQL Docker
-├── package.json            # Configuration file Frontend
+├── package.json            # File konfigurasi Frontend
 └── README.md               # Dokumentasi proyek
 ```
 
